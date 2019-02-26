@@ -40,5 +40,3 @@ ex2 = do
         input <- readFile "src/Day2/input.txt"
         let result = solve2 $ lines input
         return result
-
---check = ex2 >>= \result -> result == "bvnfawcnyoeyudzrpgslimtkj"

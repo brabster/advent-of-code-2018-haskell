@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -F -pgmF hspec-discover #-}
+
+{-
 
 import Test.Hspec
 
@@ -6,6 +9,7 @@ import Data.Set as Set
 import Day1.Solution as Day1
 import Day2.Solution as Day2
 import Day3.Solution as Day3
+import Day4.Solution as Day4
 
 main :: IO ()
 main = hspec $ do 
@@ -20,3 +24,4 @@ main = hspec $ do
     describe "Day3" $ do
         it "ex1 correct" $ Day3.ex1 `shouldReturn` 106501
         it "ex2 correct" $ Day3.ex2 `shouldReturn` Set.singleton "632"
+-}

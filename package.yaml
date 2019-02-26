@@ -22,7 +22,7 @@ dependencies:
 - base >= 4.7 && < 5
 - containers
 - regex-compat
-- matrices
+- list-grouping >= 0.1.1
 
 library:
   source-dirs: src
@@ -39,7 +39,7 @@ executables:
     - aoc2018-haskell
 
 tests:
-  aoc-haskell-test:
+  spec:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
