@@ -25,34 +25,22 @@ parseLine line =
     in
         Entry timestamp parsedAction
 
-assignActionsToGuards :: [Entry] -> [(GuardId, Entry)]
-assignActionsToGuards entries =
-    let
-        step entry@(Entry _ action) assigned =
-            case action of
-                Start newGuardId -> (newGuardId, entry) : assigned
-                _ -> (guardId, entry) : assigned
-                    where (guardId, _) = head assigned
-    in
-        foldr step [] entries
+type ParseState = (Maybe GuardId, Map.Map GuardId [Entry])
 
-isSleepAction :: Entry -> Bool
-isSleepAction (Entry _ action) =
-    case action of
-        FallsAsleep -> True
-        WakesUp -> True
-        _ -> False
-
-partitionListByShift :: [Entry] -> [[Entry]]
-partitionListByShift = foldl (\b a ->
-    case a of
-        Entry _ (Start _) -> [a] : b
-        _ -> case b of
-            (x:xs) -> (x ++ [a]) : xs
-            [] -> error "no initial start action") []
+parseEntry :: ParseState -> Entry -> ParseState
+parseEntry (Nothing, m) (Entry _ (Start guard)) = (Just guard, m)
+parseEntry (Nothing, m) otherEntry = error "Need a start event when no current guard ID"
+parseEntry (Just guard, m) (Entry _ (Start nextGuard)) = (Just nextGuard, m)
+parseEntry (Just guard, m) entry = (Just guard, (Map.insertWith (++) guard [entry]) m)
 
 guardId :: Entry -> GuardId
 guardId (Entry _ (Start id)) = id
+
+numericGuardId :: GuardId -> Int
+numericGuardId = read . (drop 1)
+
+timestamp :: Entry -> Timestamp
+timestamp (Entry ts _) = ts
 
 minsFromTimestamp :: String -> Int
 minsFromTimestamp ts = 
@@ -66,20 +54,11 @@ minutesBetween :: Timestamp -> Timestamp -> [Int]
 minutesBetween start end = [(minsFromTimestamp start)..(minsFromTimestamp end - 1)]
 
 entryListToSleepingMinutes :: [Entry] -> [[Int]]
-entryListToSleepingMinutes ((Entry _ (Start id)):rest) =
-    fmap (\(start:end:_) -> minutesBetween start end) $ splitEvery 2 $ fmap (\(Entry ts _) -> ts) rest
-
-solveEx1 input =
-    let
-        m = Map.map concat $ Map.fromListWith (++) $ fmap (\(id, entries) -> (id, entryListToSleepingMinutes entries)) $ List.sort $ fmap (\xs -> (guardId $ head xs, xs)) $ partitionListByShift $ List.sort $ map parseLine $ lines input
-        (id, mins) = List.maximumBy (comparing (length . snd)) $ Map.toList m
-        (minMostAsleep:_) = List.maximumBy (comparing length) $ List.group $ List.sort mins
-    in
-        minMostAsleep * (read $ drop 1 id)
-
-ex1 source = do
-    input <- readFile source
-    return $ solveEx1 input
+entryListToSleepingMinutes entries =
+    fmap (\mins -> case mins of
+        [] -> []
+        [start] -> error start
+        (start:end:_) -> minutesBetween start end) $ splitEvery 2 $ List.sort $ fmap timestamp entries
 
 frequencies :: Ord a => [a] -> Map.Map a Integer
 frequencies xs = Map.fromListWith (+) $ zip xs $ repeat 1
@@ -87,15 +66,22 @@ frequencies xs = Map.fromListWith (+) $ zip xs $ repeat 1
 maxOccurs :: Map.Map a Integer -> (a, Integer)
 maxOccurs = List.maximumBy (comparing snd) . Map.toList
 
-solveEx2 input =
-    let
-        m = Map.map concat $ Map.fromListWith (++) $ fmap (\(id, entries) -> (id, entryListToSleepingMinutes entries)) $ List.sort $ fmap (\xs -> (guardId $ head xs, xs)) $ partitionListByShift $ List.sort $ map parseLine $ lines input
-        byMinuteFreq = Map.map frequencies m
-        findMostAsleepMinute = Map.map maxOccurs $ Map.filter (not . Map.null) byMinuteFreq
-        (id, (minute, freq)) = List.maximumBy (comparing snd) $ Map.toList findMostAsleepMinute
-    in
-        (read $ drop 1 id) * minute
+entriesByGuard :: [Entry] -> Map.Map GuardId [Entry]
+entriesByGuard = snd . foldl parseEntry (Nothing, Map.empty) . List.sort
 
-ex2 source = do
-    input <- readFile source
-    return $ solveEx2 input
+--getGuardMostMinsAsleep :: [Entry] -> Int
+getGuardMostMinsAsleep entries =
+    let
+        sleepingMinutesByGuard = Map.map (concat . entryListToSleepingMinutes) $ entriesByGuard entries
+        (mostMinutesAsleep, mins) = List.maximumBy (comparing (length . snd)) $ Map.toList sleepingMinutesByGuard
+        (min, _) = List.maximumBy (comparing snd) $ Map.toList $ frequencies mins
+    in
+        numericGuardId mostMinutesAsleep * min
+
+getGuardAndMinMostAsleep :: [Entry] -> Int
+getGuardAndMinMostAsleep entries =
+    let
+        maxSleepingMinutesByGuard = Map.map maxOccurs $ Map.map (frequencies . concat . entryListToSleepingMinutes) $ entriesByGuard entries
+        (id, (minute, _)) = List.maximumBy (comparing (snd . snd)) $ Map.toList maxSleepingMinutesByGuard
+    in
+        numericGuardId id * minute
