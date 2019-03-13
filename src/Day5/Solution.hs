@@ -2,6 +2,7 @@ module Day5.Solution where
 
 import Data.Char
 
+-- can I equalsIgnoreCase?
 oppositePolarity :: Char -> Char -> Bool
 oppositePolarity a b = toUpper a == toUpper b && a /= b
 

@@ -69,7 +69,7 @@ maxOccurs = List.maximumBy (comparing snd) . Map.toList
 entriesByGuard :: [Entry] -> Map.Map GuardId [Entry]
 entriesByGuard = snd . foldl parseEntry (Nothing, Map.empty) . List.sort
 
---getGuardMostMinsAsleep :: [Entry] -> Int
+getGuardMostMinsAsleep :: [Entry] -> Int
 getGuardMostMinsAsleep entries =
     let
         sleepingMinutesByGuard = Map.map (concat . entryListToSleepingMinutes) $ entriesByGuard entries

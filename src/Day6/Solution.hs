@@ -84,7 +84,7 @@ ex1 candidates =
 ex2 :: Int -> [Point] -> Int
 ex2 maxDistance candidates =
     let
-        boundary = BoundingBox { topLeft = Point {x=0, y = 0}, bottomRight = Point {x=1000, y = 1000}} --overallBoundingBox candidates
+        boundary = BoundingBox { topLeft = Point {x=0, y = 0}, bottomRight = Point {x = 1000, y = 1000}} --overallBoundingBox candidates
         pointsInBoundary = generateCells boundary
         sumOfDistancesToCandidates p = sum $ fmap (manhattanDistance p) candidates
         withTotalDistances = fmap sumOfDistancesToCandidates pointsInBoundary
