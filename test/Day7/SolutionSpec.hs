@@ -17,6 +17,9 @@ spec = do
             it "handles single element" $ buildDepGraph [("A", "B")] `shouldBe` [("A", ["B"])]
             it "handles two elements same prereq" $
                 buildDepGraph [("A", "C"), ("A", "B")] `shouldBe` [("A", ["B", "C"])]
+        describe "job times" $ do
+            it "looks up value correctly" $ jobTime 5 "G" `shouldBe` Just 12
+            it "looks up missing value correctly" $ jobTime 5 "GA" `shouldBe` Nothing
         
     describe "Challenge" $ do
         it "small input is correct" $ do
@@ -27,3 +30,11 @@ spec = do
             input <- readFile "src/Day7/input.txt"
             let parsed = input2Dependencies input
             findJobOrder parsed `shouldBe` "LFMNJRTQVZCHIABKPXYEUGWDSO"
+        it "small input is correct" $ do
+            input <- readFile "src/Day7/input_small.txt"
+            let parsed = input2Dependencies input
+            getBuildTime 2 0 parsed `shouldBe` 15
+        it "ex2 is correct" $ do
+            input <- readFile "src/Day7/input.txt"
+            let parsed = input2Dependencies input
+            getBuildTime 5 60 parsed `shouldBe` 1180
