@@ -94,25 +94,31 @@ data BuildState = BuildState {
     , jobStartTime :: Int
 } deriving (Eq, Show)
 
+-- constant list of (jobId, jobTimeSeconds)
 jobTimes :: Map.Map JobId Int
 jobTimes = Map.fromList $ zip (fmap (:[]) ['A'..'Z']) [1..]
 
+-- get the time to execute the given job
 jobTime :: Int -> JobId -> Maybe Int
 jobTime startTime jobId = fmap (+ startTime) $ Map.lookup jobId jobTimes
 
+-- refer to this frequently in the code that follows
 type WorkerState = (JobId, Int)
 
 -- could use a lens to edit the internal structure
 subtractSecond :: WorkerState -> WorkerState
 subtractSecond (jobId, sec) = (jobId, sec - 1)
 
+-- true whwn this WorkerState is for a worker that's not finished
 isBusy :: WorkerState -> Bool
 isBusy (_, sec) = sec > 0
 
+-- create a WorkerState for this worker with this job time left
 assignWorker :: Int -> JobId -> Maybe WorkerState
 assignWorker jobStartTime jobId = fmap (\t -> (jobId, t)) (jobTime jobStartTime jobId)
 
---parallelBuildStep :: BuildState -> BuildState
+-- way too complicated!
+parallelBuildStep :: BuildState -> BuildState
 parallelBuildStep state@BuildState {activeWorkers = [], graph = []} = state
 parallelBuildStep state@BuildState {second, activeWorkers, idleWorkerCount, graph, jobStartTime} =
     let
