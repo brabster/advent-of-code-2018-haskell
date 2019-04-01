@@ -56,10 +56,10 @@ safeHead [] = Nothing
 safeHead (x:xs) = Just x
 
 -- no network access, make my own specialised elementAt function
+-- no need to explicitly handle case where index is off the end of the list
 elementAt :: [a] -> Int -> Maybe a
 elementAt xs n
     | n == 0 = Nothing
-    | n > length xs = Nothing
     | otherwise = safeHead $ drop (n - 1) xs
 
 -- mutually recursive with valueOf
