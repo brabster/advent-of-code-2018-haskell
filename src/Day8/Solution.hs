@@ -3,6 +3,8 @@
 module Day8.Solution where
 
 import qualified Data.List as List
+import qualified Data.Maybe as Maybe
+import Debug.Trace
 
 data Header = Header Int Int deriving(Show)
 type Meta = [Int]
@@ -12,6 +14,7 @@ data Node = Node {
     , metadata :: [Int]
 } deriving (Show, Eq)
 
+-- the usual basic parsing stuff
 readInt :: String -> Int
 readInt = read
 
@@ -39,7 +42,31 @@ parseNode ints =
         (children, metaAnd) = parseNodes nodeCount [] nodesAnd
         (meta, rest) = parseMeta metaCount metaAnd
     in
-        (Node { children = children, metadata = meta}, rest)
+        -- must reverse children to correct order for part 2
+        -- took me a while to figure out order was the problem and not an off-by-one
+        (Node { children = reverse children, metadata = meta}, rest)
 
+-- solution to part 1
 sumMeta :: [Int] -> Int
 sumMeta = sum . extractMeta . fst . parseNode
+
+-- probably missing a better way to get the head safely
+safeHead :: [a] -> Maybe a
+safeHead [] = Nothing
+safeHead (x:xs) = Just x
+
+-- no network access, make my own specialised elementAt function
+elementAt :: [a] -> Int -> Maybe a
+elementAt xs n
+    | n == 0 = Nothing
+    | n > length xs = Nothing
+    | otherwise = safeHead $ drop (n - 1) xs
+
+-- mutually recursive with valueOf
+childValue :: [Node] -> Int -> Maybe Int
+childValue children meta = fmap valueOf (elementAt children meta)
+
+-- mutually recursive with childValue
+valueOf :: Node -> Int
+valueOf Node { children = [], metadata } = sum metadata
+valueOf Node { children, metadata } = sum $ Maybe.mapMaybe (childValue children) metadata
