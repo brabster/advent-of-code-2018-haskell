@@ -21,22 +21,22 @@ readInt = read
 readNumbers :: String -> [Int]
 readNumbers = (fmap readInt) . words
 
+-- pull out the first two numbers as a Header
 parseHeader :: [Int] -> (Header, [Int])
 parseHeader (nodeCount:metaCount:rest) = (Header nodeCount metaCount, rest)
 
+-- parse the meta values (same as splitAt)
 parseMeta :: Int -> [Int] -> (Meta, [Int])
 parseMeta = List.splitAt
 
 parseNodes :: Int -> [Node] -> [Int] -> ([Node], [Int])
 parseNodes 0 nodes ints = (nodes, ints)
 parseNodes count nodes ints = parseNodes (count - 1) (newNode : nodes) rest
-    where (newNode, rest) = parseNode ints
+    where (newNode, rest) = parseNode' ints
 
-extractMeta :: Node -> Meta
-extractMeta node = concatMap extractMeta (children node) ++ metadata node
-
-parseNode :: [Int] -> (Node, [Int])
-parseNode ints =
+-- parse a sequence of input numbers into a state of (Node, rest)
+parseNode' :: [Int] -> (Node, [Int])
+parseNode' ints =
     let
         (Header nodeCount metaCount, nodesAnd) = parseHeader ints
         (children, metaAnd) = parseNodes nodeCount [] nodesAnd
@@ -46,9 +46,17 @@ parseNode ints =
         -- took me a while to figure out order was the problem and not an off-by-one
         (Node { children = reverse children, metadata = meta}, rest)
 
+-- parses the input sequence in a Node
+parseNode :: [Int] -> Node
+parseNode = fst . parseNode'
+
+-- get meta for this node, including all child nodes
+extractMeta :: Node -> Meta
+extractMeta node = concatMap extractMeta (children node) ++ metadata node
+
 -- solution to part 1
 sumMeta :: [Int] -> Int
-sumMeta = sum . extractMeta . fst . parseNode
+sumMeta = sum . extractMeta . parseNode
 
 -- probably missing a better way to get the head safely
 safeHead :: [a] -> Maybe a

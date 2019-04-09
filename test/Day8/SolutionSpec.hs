@@ -19,9 +19,9 @@ spec = do
     describe "Part 2" $ do
         it "small input is correct" $ do
             input <- readFile "src/Day8/input_small.txt"
-            let parsed = (fst . parseNode . readNumbers) input
+            let parsed = (parseNode . readNumbers) input
             valueOf parsed `shouldBe` 66
         it "full input is correct" $ do
             input <- readFile "src/Day8/input.txt"
-            let parsed = (fst . parseNode . readNumbers) input
+            let parsed = (parseNode . readNumbers) input
             valueOf parsed `shouldBe` 21399
