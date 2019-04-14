@@ -109,7 +109,7 @@ type WorkerState = (JobId, Int)
 subtractSecond :: WorkerState -> WorkerState
 subtractSecond (jobId, sec) = (jobId, sec - 1)
 
--- true whwn this WorkerState is for a worker that's not finished
+-- true when this WorkerState is for a worker that's not finished
 isBusy :: WorkerState -> Bool
 isBusy (_, sec) = sec > 0
 

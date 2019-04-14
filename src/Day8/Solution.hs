@@ -11,7 +11,7 @@ type Meta = [Int]
 
 data Node = Node {
     children :: [Node]
-    , metadata :: [Int]
+    , metadata :: Meta
 } deriving (Show, Eq)
 
 -- the usual basic parsing stuff
