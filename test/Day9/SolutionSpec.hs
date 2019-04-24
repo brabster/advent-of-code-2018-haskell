@@ -7,36 +7,51 @@ import Test.Hspec
 import Day9.Solution
 
 import qualified Data.Sequence as Seq
+import qualified Data.Map as Map
 
-playToStep :: Game -> Int -> (Board, MarbleId, Score)
-playToStep Game { players, marbles } steps = foldl step (Seq.singleton 0, 0, 0) [1..steps]
-    where
-        step :: (Board, MarbleId, Score) -> MarbleId -> (Board, MarbleId, Score)
-        step (board, current, score) = placeMarble board current
-
-sampleGame = Game {players = 9, marbles = 25}
-
-readSampleState :: String -> Seq.Seq Int
-readSampleState = Seq.fromList . fmap read . words
 
 spec :: Spec
 spec = 
     describe "Part 1" $ do
-        it "parses input correctly" $ do
-            input <- readFile "src/Day9/input_small.txt"
-            let parsed = parseLine input
-            parsed `shouldBe` sampleGame
-        it "places marbles correctly" $ do
-            placeMarble (Seq.singleton 0) 0 1 `shouldBe` (Seq.fromList [0, 1], 1, 0)
-            playToStep sampleGame 1 `shouldBe` (Seq.fromList [0, 1], 1, 0)
-            playToStep sampleGame 2 `shouldBe` (Seq.fromList [0, 2, 1], 1, 0)
-            playToStep sampleGame 3 `shouldBe` (Seq.fromList [0, 2, 1, 3], 3, 0)
-            playToStep sampleGame 12 `shouldBe` (readSampleState "0  8  4  9  2 10  5 11 1 12 6  3  7", 9, 0)
-            playToStep sampleGame 23 `shouldBe` (readSampleState "0 16  8 17  4 18 19 2 20 10 21  5 22 11  1 12  6 13  3 14  7 15", 6, 32)
-        it "gets examples right" $ do
-            highScore (play $ parseLine "10 players; last marble is worth 1618 points: high score is 8317") `shouldBe` 8317
-            highScore (play $ parseLine "13 players; last marble is worth 7999 points: high score is 146373") `shouldBe` 146373
-            highScore (play $ parseLine "17 players; last marble is worth 1104 points: high score is 2764") `shouldBe` 2764
-            highScore (play $ parseLine "21 players; last marble is worth 6111 points: high score is 54718") `shouldBe` 54718
-            highScore (play $ parseLine "30 players; last marble is worth 5807 points: high score is 37305") `shouldBe` 37305
-        it "gets part 1 right" $ highScore (play $ parseLine "418 players; last marble is worth 71339 points") `shouldBe` 37305
+        it "board works correctly" $ do
+            rotate (mkBoard [0] 0) Clockwise 0 `shouldBe` mkBoard [0] 0
+            rotate (mkBoard [0] 0) Clockwise 1 `shouldBe` mkBoard [0] 0
+            rotate (mkBoard [0] 0) CounterClockwise 1 `shouldBe` mkBoard [0] 0
+            rotate (mkBoard [0, 1] 0) Clockwise 1 `shouldBe` mkBoard [0, 1] 1
+            rotate (mkBoard [0, 1] 1) Clockwise 1 `shouldBe` mkBoard [0, 1] 0
+            rotate (mkBoard [0, 1] 0) Clockwise 2 `shouldBe` mkBoard [0, 1] 0
+            rotate (mkBoard [0, 1] 1) CounterClockwise 1 `shouldBe` mkBoard [0, 1] 0
+            rotate (mkBoard [0, 1] 1) CounterClockwise 2 `shouldBe` mkBoard [0, 1] 1
+            rotate (mkBoard [0, 1, 2] 1) CounterClockwise 1 `shouldBe` mkBoard [0, 1, 2] 0
+            rotate (mkBoard [0, 1, 2] 1) CounterClockwise 2 `shouldBe` mkBoard [0, 1, 2] 2
+            rotate (mkBoard [0, 1, 2] 1) CounterClockwise 3 `shouldBe` mkBoard [0, 1, 2] 1
+            rotate (mkBoard [0, 1, 2] 1) CounterClockwise 4 `shouldBe` mkBoard [0, 1, 2] 0
+            rotate (mkBoard [0, 1, 2] 1) CounterClockwise 5 `shouldBe` mkBoard [0, 1, 2] 2
+            rotate (mkBoard [0, 1, 2] 1) CounterClockwise 6 `shouldBe` mkBoard [0, 1, 2] 1
+            rotate (mkBoard [0, 1, 2] 1) Clockwise 1 `shouldBe` mkBoard [0, 1, 2] 2
+            rotate (mkBoard [0, 1, 2] 1) Clockwise 2 `shouldBe` mkBoard [0, 1, 2] 0
+            rotate (mkBoard [0, 1, 2] 1) Clockwise 3 `shouldBe` mkBoard [0, 1, 2] 1
+            rotate (mkBoard [0, 1, 2] 1) Clockwise 4 `shouldBe` mkBoard [0, 1, 2] 2
+            rotate (mkBoard [0, 1, 2] 1) Clockwise 5 `shouldBe` mkBoard [0, 1, 2] 0
+            rotate (mkBoard [0, 1, 2] 1) Clockwise 6 `shouldBe` mkBoard [0, 1, 2] 1
+        it "applies a move correctly" $
+            applyMove GameState { board = mkBoard [0, 1] 1, scores = Map.empty } (2, 2)
+                `shouldBe` GameState { board = mkBoard [0, 2, 1] 1, scores = Map.empty }
+        describe "plays sample correctly" $ do
+            it "move 22 pre-score correct" $ play Game { players = 9, marbles = 22 } `shouldBe`
+                parseExample "0 16  8 17  4 18  9 19  2 20 10 21  5(22)11  1 12  6 13  3 14  7 15" Map.empty
+            it "move 23 (first scoring) correct" $ play Game { players = 9, marbles = 23 } `shouldBe`
+                parseExample "0 16  8 17  4 18(19) 2 20 10 21  5 22 11  1 12  6 13  3 14  7 15" (Map.fromList [(5,32)])
+            it "25th marble correct" $ play Game { players = 9, marbles = 25 } `shouldBe`
+                parseExample "0 16  8 17  4 18 19  2 24 20(25)10 21  5 22 11  1 12  6 13  3 14  7 15" (Map.fromList [(5,32)])
+        describe "plays samples correctly" $ do
+            it "ex-" $ (hiscore . play) Game { players = 1, marbles = 48 } `shouldBe` 95
+            it "ex-" $ (hiscore . play) Game { players = 9, marbles = 48 } `shouldBe` 63
+            it "ex1" $ (hiscore . play) Game { players = 10, marbles = 1618 } `shouldBe` 8317
+            it "ex2" $ (hiscore . play) Game { players = 13, marbles = 7999 } `shouldBe` 146373
+            it "ex3" $ (hiscore . play) Game { players = 17, marbles = 1104 } `shouldBe` 2764
+            it "ex4" $ (hiscore . play) Game { players = 21, marbles = 6111 } `shouldBe` 54718
+            it "ex5" $ (hiscore . play) Game { players = 30, marbles = 5807 } `shouldBe` 37305
+        describe "challenges" $ do
+            it "gets first challenge right" $ (hiscore . play) Game { players = 418, marbles = 71339 } `shouldBe` 412127
+            it "gets second challenge right" $ (hiscore . play) Game { players = 418, marbles = 71339 * 100 } `shouldBe` 412127
