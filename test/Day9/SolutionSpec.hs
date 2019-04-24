@@ -54,4 +54,4 @@ spec =
             it "ex5" $ (hiscore . play) Game { players = 30, marbles = 5807 } `shouldBe` 37305
         describe "challenges" $ do
             it "gets first challenge right" $ (hiscore . play) Game { players = 418, marbles = 71339 } `shouldBe` 412127
-            it "gets second challenge right" $ (hiscore . play) Game { players = 418, marbles = 71339 * 100 } `shouldBe` 412127
+            -- slow it "gets second challenge right" $ (hiscore . play) Game { players = 418, marbles = 71339 * 100 } `shouldBe` 412127
