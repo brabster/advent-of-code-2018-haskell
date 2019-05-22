@@ -39,6 +39,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
  - list-grouping-0.1.1@sha256:abd77c58b7496817250b206048f200572af9891f75a7825c6d54a1b012d2d89f
+ - memoize-0.8.1@sha256:2146197c639c126796d850cb4457b24cfeb6966d6d878825f855aafce31f8874
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
