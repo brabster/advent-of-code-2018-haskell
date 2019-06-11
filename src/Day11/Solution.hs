@@ -1,8 +1,9 @@
-module Day11.Solution where
+module Day11.Solution (findMaxPowerEff) where
 
 import qualified Data.Matrix as Mat
 import qualified Data.Set as Set
 import qualified Data.List as List
+import qualified Data.Map.Strict as Map
 import Data.Ord
 import Data.Char
 import Debug.Trace
@@ -34,14 +35,16 @@ getEdgeSum matrix dim (i, j) = (sum rightmost) + sum (take (dim - 1) lowest)
         lowest = edge (i, j + dim - 1) (i + dim - 1, j + dim - 1)
 
 getPower ((_, _), p, _) = p
-matrix = powerLevels 10 50 50
+
+findMaxPowerStep' :: Mat.Matrix Int -> Int -> (Int, Int) -> ((Int, Int), Int, Int)
+findMaxPowerStep' = findMaxPowerStep
 
 findMaxPowerStep :: Mat.Matrix Int -> Int -> (Int, Int) -> ((Int, Int), Int, Int)
 findMaxPowerStep matrix dim (i, j)
     | dim == 1 = ((i, j), Mat.getElem i j matrix, dim)
     | otherwise = if getPower candidate > getPower previous then candidate else previous
         where
-            previous = findMaxPowerStep matrix (dim - 1) (i, j)
+            previous = findMaxPowerStep' matrix (dim - 1) (i, j)
             candidate = ((i, j), (getPower previous) + getEdgeSum matrix dim (i, j), dim)
 
 findMaxPowerForDim :: Mat.Matrix Int -> Int -> Int -> ((Int, Int), Int, Int)
